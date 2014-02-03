@@ -43,11 +43,16 @@ Now we can start quering the database to get information on the dataset that we 
 
 
 ```r
-dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j JOIN gpl ON j.gpl=gpl.gpl WHERE gse.title LIKE '%HCV%' AND gpl.manufacturer LIKE '%Illumina%' AND gse.contact LIKE '%Yale%';")
+dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.technology FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j JOIN gpl ON j.gpl=gpl.gpl WHERE gse.title LIKE '%HCV%' AND gpl.manufacturer LIKE '%Illumina%' AND gse.contact LIKE '%Yale%';")
 ```
 
 ```
-## Error: RS-DBI driver: (error in statement: no such table: gpl)
+##                                                            gse.title
+## 1 The blood transcriptional signature of chronic HCV [Illumina data]
+## 2                 The blood transcriptional signature of chronic HCV
+##    gse.gse  gpl.gpl gpl.manufacturer        gpl.technology
+## 1 GSE40223 GPL10558    Illumina Inc. oligonucleotide beads
+## 2 GSE40224 GPL10558    Illumina Inc. oligonucleotide beads
 ```
 
 
@@ -71,28 +76,10 @@ Convert the gse, gpl and gse_gpl database tables into data tables.
 ```r
 gse <- data.table(dbReadTable(con = geo_con, name = "gse", row.names = FALSE, 
     header = TRUE, sep = "\t"))
-```
-
-```
-## Error: could not find table gse
-```
-
-```r
 gpl <- data.table(dbReadTable(con = geo_con, name = "gpl", row.names = FALSE, 
     header = TRUE, sep = "\t"))
-```
-
-```
-## Error: could not find table gpl
-```
-
-```r
 gse_gpl <- data.table(dbReadTable(con = geo_con, name = "gse_gpl", row.names = FALSE, 
     header = TRUE, sep = "\t"))
-```
-
-```
-## Error: could not find table gse_gpl
 ```
 
 
@@ -103,20 +90,9 @@ We need to merge the gse, gpl and gse_gpl data tables into one table before we c
 setnames(gse, apply(as.matrix(colnames(gse)), MARGIN = 1, FUN = function(x) {
     paste0("gse.", x)
 }))
-```
-
-```
-## Error: object 'gse' not found
-```
-
-```r
 setnames(gpl, apply(as.matrix(colnames(gpl)), MARGIN = 1, FUN = function(x) {
     paste0("gpl.", x)
 }))
-```
-
-```
-## Error: object 'gpl' not found
 ```
 
 
@@ -126,56 +102,17 @@ The merging is a two-step process. First we merge the gse and gse_gpl tables usi
 ```r
 ## Set keys to join gse and gse_gpl tables
 setkey(gse, "gse.gse")
-```
-
-```
-## Error: object 'gse' not found
-```
-
-```r
 setkey(gse_gpl, "gse")
-```
-
-```
-## Error: object 'gse_gpl' not found
-```
-
-```r
 
 ## Inner join gse and gse_gpl tables
 j <- gse[gse_gpl, nomatch = 0]
-```
-
-```
-## Error: object 'gse' not found
-```
-
-```r
 
 ## Set keys to join j and gpl tables
 setkey(j, "gpl")
-```
-
-```
-## Error: object 'j' not found
-```
-
-```r
 setkey(gpl, "gpl.gpl")
-```
-
-```
-## Error: object 'gpl' not found
-```
-
-```r
 
 ## Inner join j and gpl tables
 k <- gpl[j, nomatch = 0]
-```
-
-```
-## Error: object 'gpl' not found
 ```
 
 
@@ -184,11 +121,16 @@ Finally proceed with the query. This query is equivalent to the query we did usi
 
 ```r
 k[gse.title %like% "HCV" & gpl.manufacturer %like% "Illumina" & gse.contact %like% 
-    "Yale", list(gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description)]
+    "Yale", list(gse.title, gse.gse, gpl.gpl, gpl.technology)]
 ```
 
 ```
-## Error: object 'k' not found
+##                                                             gse.title
+## 1: The blood transcriptional signature of chronic HCV [Illumina data]
+## 2:                 The blood transcriptional signature of chronic HCV
+##     gse.gse  gpl.gpl        gpl.technology
+## 1: GSE40223 GPL10558 oligonucleotide beads
+## 2: GSE40224 GPL10558 oligonucleotide beads
 ```
 
 

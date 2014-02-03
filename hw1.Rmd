@@ -34,7 +34,7 @@ geo_con <- dbConnect(SQLite(),'GEOmetadb.sqlite')
 Now we can start quering the database to get information on the dataset that we want. We will use the `dbGetQuery` function to do the query. Specifically we are looking for entrees that have "HCV" in the title cell, "Illumina" in the manufacturer cell and "Yale" in the contact cell. The output is the title, GSE accession number, GPL accession number and manufacturer and description of platform for entrees that match. 
 
 ```{r}
-dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j JOIN gpl ON j.gpl=gpl.gpl WHERE gse.title LIKE '%HCV%' AND gpl.manufacturer LIKE '%Illumina%' AND gse.contact LIKE '%Yale%';")
+dbGetQuery(geo_con, "SELECT gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.technology FROM (gse JOIN gse_gpl ON gse.gse=gse_gpl.gse) j JOIN gpl ON j.gpl=gpl.gpl WHERE gse.title LIKE '%HCV%' AND gpl.manufacturer LIKE '%Illumina%' AND gse.contact LIKE '%Yale%';")
 ```
 
 The first row contains information on the Illumina dataset that we will want to use. I think the second row is just a collection of all datasets used in the study. 
@@ -85,7 +85,7 @@ k <- gpl[j, nomatch=0]
 Finally proceed with the query. This query is equivalent to the query we did using the `dbGetQuery` function.
 
 ```{r}
-k[gse.title %like% "HCV" & gpl.manufacturer %like% "Illumina" & gse.contact %like% "Yale", list(gse.title, gse.gse, gpl.gpl, gpl.manufacturer, gpl.description)]
+k[gse.title %like% "HCV" & gpl.manufacturer %like% "Illumina" & gse.contact %like% "Yale", list(gse.title, gse.gse, gpl.gpl, gpl.technology)]
 ```
 
 Note that the query result is the same as `dbGetQuery`.
